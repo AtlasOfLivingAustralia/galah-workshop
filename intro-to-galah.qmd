@@ -1,0 +1,175 @@
+---
+title: "galah<br><h2>Workshop</h2><br>"
+author: "Atlas of Living Australia"
+date: 2022-11-25
+title-block-banner: "#f5b2d0"
+title-block-banner-color: "#222322"
+title-block-style: plain
+format: 
+  html:
+    css: style.css
+    highlight-style: tango
+---
+
+## An introduction to galah
+
+Install
+
+```{r}
+#| eval: false
+#| message: false
+#| warning: false
+#| error: false
+install.packages("galah")
+install.packages("dplyr")
+```
+
+Load packages
+
+```{r}
+#| message: false
+#| warning: false
+library(galah)
+library(dplyr)
+```
+
+
+
+### Need more info?
+
+```{r}
+#| eval: false
+?galah
+```
+
+
+
+# Atlases
+
+See what atlases are available:
+
+```{r}
+show_all(atlases)
+```
+
+
+Change atlas
+
+```{r}
+galah_config(atlas = "Austria")
+```
+
+
+
+# Fields
+
+See all possible fields for filtering queries
+
+```{r}
+show_all(fields)
+```
+
+We recommend using the `View()` function, or `tibble::view()` to open see this information in a new tab within R Studio
+
+```{r}
+#| eval: false
+show_all(fields) |> View()
+show_all(fields) |> tibble::view()
+```
+
+Search for fields
+
+```{r}
+search_all(fields, "australian states") # not case-sensitive
+```
+
+See values within a field
+
+```{r}
+#| eval: false
+search_all(fields, "cl22") |> 
+  show_values()
+```
+
+Search for values within a field
+
+```{r}
+#| eval: false
+search_all(fields, "cl22") |> 
+  search_values("tas")
+```
+
+
+
+### Narrowing results ###
+
+search_taxa("reptilia")
+
+#add a dataframe
+
+search_taxa(data.frame(genus="Eolophus", kingdom="Aves"))
+
+#find numbers of records for all reptilia
+galah_call() %>% 
+  galah_identify("reptilia") %>% 
+  atlas_counts()
+
+#create an object
+taxa<-search_taxa(data.frame(genus="Eolophus",kingdom="Aves"))
+
+#use object in call
+galah_call() %>% 
+  galah_identify(taxa) %>% 
+  atlas_counts()
+
+###galah filter
+
+#total records on ala since 2000
+galah_call() %>% 
+  galah_filter(year>2000) %>% 
+  atlas_counts()
+
+#all records since 2000 form iNaturalist australia
+galah_call() %>% 
+  galah_filter(
+    year>=2000,
+    dataResourceName=="iNaturalist Australia"
+  ) %>% 
+  atlas_counts()
+
+#search fields values
+
+search_field_values("dataResourceName",limit=1000) %>% View()
+
+### profiles
+
+#full list of profiles
+show_all_profiles() %>% View()
+
+#whats happening inside a profile
+search_profile_attributes("ALA") %>% View()
+
+#records form 2000 that are spatially valid
+galah_call() %>% 
+  galah_filter(year>=2000,
+               profile = "ALA") %>% 
+  atlas_counts()
+
+###galah group by
+
+#records for galah since 2015-2021 group by year and basis of record
+
+```{r}
+galah_config(email = "your-email-here") # ALA-registered email
+```
+
+```{r}
+#| include: false
+galah_config(email = "martin.westgate@csiro.au", verbose = FALSE)
+```
+
+galah_occurrence_data<-galah_call() %>% 
+  galah_identify("Eolophus roseicapilla") %>% 
+  galah_filter(year>2015 & year<=2021) %>% 
+  galah_group_by(year, basisOfRecord) %>% 
+  atlas_occurrences()
